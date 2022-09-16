@@ -3,3 +3,4 @@ gpu_stats.txt
 gpuls/cuda/main.o
 gpuls/cuda/kernel.o
 dist/
+build/
