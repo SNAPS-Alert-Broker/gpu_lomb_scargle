@@ -122,15 +122,6 @@ int main(int argc, char *argv[])
 	const unsigned int freqToTest=atoi(argv[4]);
    int MODE = atoi(argv[5]);
 
-	printf("\nDataset file: %s",inputFname);
-	printf("\nMinimum Frequency: %f",minFreq);
-	printf("\nMaximum Frequency: %f",maxFreq);
-	printf("\nNumber of frequencies to test: %u", freqToTest);
-	printf("\nMode: %d", MODE);
-
-	#if ERROR==1
-	printf("\nExecuting L-S variant from AstroPy that propogates error and floats the mean");
-	#endif
 	
 	
 	/////////////
@@ -171,10 +162,7 @@ int main(int argc, char *argv[])
 		
 		double tend=omp_get_wtime();
 		double totalTime=tend-tstart;
-		printf("\nTotal time to compute batch: %f", totalTime);
-		printf("\n[Validation] Sum of all periods: %f", sumPeriods);
-
-		gpu_stats<<totalTime<<", "<< inputFname<<", Sum of periods: "<<sumPeriods<<", Min/Max Freq: "<<minFreq<<"/"<<maxFreq<<",  Num tested freq: "<<freqToTest<<", MODE: "<<MODE<<", NTHREADSCPU/NUMGPU/BLOCKSIZE/ERROR/SHMEM/RETURNPGRAM/PINNED/SIZEPINNEDBUFFERMIB/NSTREAMS/DTYPE: "<<NTHREADSCPU<<", "<<NUMGPU<<", "<<BLOCKSIZE<<", "<<ERROR<<", "<<SHMEM<<", "<<RETURNPGRAM<<", "<<PINNED<<", "<<SIZEPINNEDBUFFERMIB<<", "<<NSTREAMS<<", "<<STR(DTYPE)<<endl;
+		
 	}
 	//One object to compute on the GPU
 	else if (MODE==2)
@@ -191,10 +179,7 @@ int main(int argc, char *argv[])
 		
 		double tend=omp_get_wtime();
 		double totalTime=tend-tstart;
-		printf("\nTotal time to compute batch: %f", totalTime);
-		printf("\n[Validation] Period: %f, Power: %f", periodFound, maxPowerFound);
-
-		gpu_stats<<totalTime<<", "<< inputFname<<", Sum of periods: "<<periodFound<<", Min/Max Freq: "<<minFreq<<"/"<<maxFreq<<",  Num tested freq: "<<freqToTest<<", MODE: "<<MODE<<", NTHREADSCPU/BLOCKSIZE/ERROR/SHMEM/RETURNPGRAM/PINNED/SIZEPINNEDBUFFERMIB/NSTREAMS/DTYPE: "<<NTHREADSCPU<<", "<<BLOCKSIZE<<", "<<ERROR<<", "<<SHMEM<<", "<<RETURNPGRAM<<", "<<PINNED<<", "<<SIZEPINNEDBUFFERMIB<<", "<<NSTREAMS<<", "<<STR(DTYPE)<<endl;
+		
 	}
 	//CPU- batch processing
 	else if (MODE==4)
@@ -209,9 +194,7 @@ int main(int argc, char *argv[])
 		#endif
 		double tend=omp_get_wtime();
 		double totalTime=tend-tstart;
-		printf("\nTotal time to compute batch: %f", totalTime);
-		printf("\n[Validation] Sum of all periods: %f", sumPeriods);
-		gpu_stats<<totalTime<<", "<< inputFname<<", Sum of periods: "<<sumPeriods<<", Min/Max Freq: "<<minFreq<<"/"<<maxFreq<<",  Num tested freq: "<<freqToTest<<", MODE: "<<MODE<<", NTHREADSCPU: "<<NTHREADSCPU<<", ERROR: "<<ERROR<<", DTYPE: "<<STR(DTYPE)<<endl;
+		
 	}
 	//CPU- one object
 	else if (MODE==5)
@@ -227,9 +210,7 @@ int main(int argc, char *argv[])
 		#endif
 		double tend=omp_get_wtime();
 		double totalTime=tend-tstart;
-		printf("\nTotal time to compute pgram (one object): %f", totalTime);
-		printf("\n[Validation] Period: %f, Power: %f", foundPeriod, foundPower);
-		gpu_stats<<totalTime<<", "<< inputFname<<", Sum of periods: "<<foundPeriod<<", Min/Max Freq: "<<minFreq<<"/"<<maxFreq<<",  Num tested freq: "<<freqToTest<<", MODE: "<<MODE<<", NTHREADSCPU: "<<NTHREADSCPU<<", ERROR: "<<ERROR<<", DTYPE: "<<STR(DTYPE)<<endl;
+		
 	}
 
 
@@ -245,8 +226,6 @@ int main(int argc, char *argv[])
 
 	cudaProfilerStop();
 
-	gpu_stats.close();
-	printf("\n");
 	return 0;
 }
 #endif
@@ -260,10 +239,6 @@ extern "C" void LombScarglePy(unsigned int * objectId, DTYPE * timeX, DTYPE * ma
 	// cudaProfilerStart();
 	omp_set_nested(1);
 
-	//validation and output to file
-	char fname[]="gpu_stats.txt";
-	ofstream gpu_stats;
-	gpu_stats.open(fname,ios::app);	
 
 	/////////////////////////
 	// Get information from command line
@@ -285,15 +260,6 @@ extern "C" void LombScarglePy(unsigned int * objectId, DTYPE * timeX, DTYPE * ma
 	// const unsigned int freqToTest=atoi(argv[4]);
  //    int MODE = atoi(argv[5]);
 
-	// printf("\nDataset file: %s",inputFname);
-	printf("\nMinimum Frequency: %f",minFreq);
-	printf("\nMaximum Frequency: %f",maxFreq);
-	printf("\nNumber of frequencies to test: %u", freqToTest);
-	printf("\nMode: %d", MODE);
-
-	#if ERROR==1
-	printf("\nExecuting L-S variant from AstroPy that propogates error and floats the mean");
-	#endif
 	
 	
 	/////////////
@@ -331,10 +297,7 @@ extern "C" void LombScarglePy(unsigned int * objectId, DTYPE * timeX, DTYPE * ma
 		
 		double tend=omp_get_wtime();
 		double totalTime=tend-tstart;
-		printf("\nTotal time to compute batch: %f", totalTime);
-		printf("\n[Validation] Sum of all periods: %f", sumPeriods);
 
-		gpu_stats<<totalTime<<", Sum of periods: "<<sumPeriods<<", Min/Max Freq: "<<minFreq<<"/"<<maxFreq<<",  Num tested freq: "<<freqToTest<<", MODE: "<<MODE<<", NTHREADSCPU/NUMGPU/BLOCKSIZE/ERROR/SHMEM/RETURNPGRAM/PINNED/SIZEPINNEDBUFFERMIB/NSTREAMS/DTYPE: "<<NTHREADSCPU<<", "<<NUMGPU<<", "<<BLOCKSIZE<<", "<<ERROR<<", "<<SHMEM<<", "<<RETURNPGRAM<<", "<<PINNED<<", "<<SIZEPINNEDBUFFERMIB<<", "<<NSTREAMS<<", "<<STR(DTYPE)<<endl;
 	}
 	//One object to compute on the GPU
 	else if (MODE==2)
@@ -352,10 +315,7 @@ extern "C" void LombScarglePy(unsigned int * objectId, DTYPE * timeX, DTYPE * ma
 		
 		double tend=omp_get_wtime();
 		double totalTime=tend-tstart;
-		printf("\nTotal time to compute batch: %f", totalTime);
-		printf("\n[Validation] Period: %f, Power: %f", periodFound, maxPowerFound);
 
-		gpu_stats<<totalTime<<", Sum of periods: "<<periodFound<<", Min/Max Freq: "<<minFreq<<"/"<<maxFreq<<",  Num tested freq: "<<freqToTest<<", MODE: "<<MODE<<", NTHREADSCPU/BLOCKSIZE/ERROR/SHMEM/RETURNPGRAM/PINNED/SIZEPINNEDBUFFERMIB/NSTREAMS/DTYPE: "<<NTHREADSCPU<<", "<<BLOCKSIZE<<", "<<ERROR<<", "<<SHMEM<<", "<<RETURNPGRAM<<", "<<PINNED<<", "<<SIZEPINNEDBUFFERMIB<<", "<<NSTREAMS<<", "<<STR(DTYPE)<<endl;
 	}
 	//CPU- batch processing
 	else if (MODE==4)
@@ -370,9 +330,7 @@ extern "C" void LombScarglePy(unsigned int * objectId, DTYPE * timeX, DTYPE * ma
 		#endif
 		double tend=omp_get_wtime();
 		double totalTime=tend-tstart;
-		printf("\nTotal time to compute batch: %f", totalTime);
-		printf("\n[Validation] Sum of all periods: %f", sumPeriods);
-		gpu_stats<<totalTime<<", Sum of periods: "<<sumPeriods<<", Min/Max Freq: "<<minFreq<<"/"<<maxFreq<<",  Num tested freq: "<<freqToTest<<", MODE: "<<MODE<<", NTHREADSCPU: "<<NTHREADSCPU<<", ERROR: "<<ERROR<<", DTYPE: "<<STR(DTYPE)<<endl;
+		
 	}
 	//CPU- one object
 	else if (MODE==5)
@@ -388,9 +346,7 @@ extern "C" void LombScarglePy(unsigned int * objectId, DTYPE * timeX, DTYPE * ma
 		#endif
 		double tend=omp_get_wtime();
 		double totalTime=tend-tstart;
-		printf("\nTotal time to compute pgram (one object): %f", totalTime);
-		printf("\n[Validation] Period: %f, Power: %f", foundPeriod, foundPower);
-		gpu_stats<<totalTime<<", Sum of periods: "<<foundPeriod<<", Min/Max Freq: "<<minFreq<<"/"<<maxFreq<<",  Num tested freq: "<<freqToTest<<", MODE: "<<MODE<<", NTHREADSCPU: "<<NTHREADSCPU<<", ERROR: "<<ERROR<<", DTYPE: "<<STR(DTYPE)<<endl;
+		
 	}
 
 
@@ -406,7 +362,6 @@ extern "C" void LombScarglePy(unsigned int * objectId, DTYPE * timeX, DTYPE * ma
 
 	// cudaProfilerStop();
 
-	gpu_stats.close();
 }
 #endif
 
@@ -429,7 +384,6 @@ unsigned int computeNumBatches(bool mode, bool pgrammode, unsigned int totalLeng
   //L-S space complexity (with error)
   //3Nt+NoNf //Nt-length of time series, No-number of objects, Nf-number of frequencies searched		
 
-  printf("\n*********************");
   double underestGPUcapacityGiB=getGPUCapacity();
   
   double totalGiB=0;
@@ -450,18 +404,13 @@ unsigned int computeNumBatches(bool mode, bool pgrammode, unsigned int totalLeng
   {
   double pgramsize=(sizeof(DTYPE)*(1.0*numObjects*numFreq))/(1024*1024*1024.0);		
   totalGiB+=pgramsize;		
-  printf("\nSize of pgram: %f (GiB)", pgramsize);
   }
 
   
-  printf("\nEstimated global memory footprint (GiB): %0.9f", totalGiB);
 
   unsigned int numBatches=ceil(totalGiB/(underestGPUcapacityGiB));
-  printf("\nMinimum number of batches: %u", numBatches);
   numBatches=ceil((numBatches*1.0/NUMGPU))*NUMGPU;
-  printf("\nNumber of batches (after ensuring batches evenly divide %d GPUs): %u", NUMGPU, numBatches);
 
-  printf("\n*********************\n");
   return numBatches;
 }
 
@@ -483,8 +432,6 @@ void computeObjectRanges(unsigned int * objectId, unsigned int * sizeData, struc
 	*objectLookup=(lookupObj*)malloc(sizeof(lookupObj)*cntUnique);
 
 	*numUniqueObjects=cntUnique;
-	printf("\nNumber of unique objects: %u",*numUniqueObjects);
-
 
 
 	lastId=objectId[0];
@@ -632,11 +579,9 @@ void GPULSOneObject(DTYPE * timeX,  DTYPE * magY, DTYPE * magDY, unsigned int * 
   	//Validation: total period values
 	*periodFound=(1.0/(minFreq+(maxPowerIdx*freqStep)))*2.0*M_PI;
 	
-  	printf("\nPeriod: %f", *periodFound);
   	cudaDeviceSynchronize();
 
   	double tend=omp_get_wtime();
-  	printf("\nTime to compute kernel: %f",tend-tstart);
 
   	//copy pgram back to the host if enabled
   	#ifndef PYTHON
@@ -665,37 +610,6 @@ void GPULSOneObject(DTYPE * timeX,  DTYPE * magY, DTYPE * magDY, unsigned int * 
   	#endif
 
   	*maxPowerFound=(*pgram)[maxPowerIdx];
-  	printf("\nMaximum power at found period: %f", *maxPowerFound);
-
-	// fprintf(stderr,"Total elements transferred: %u",totalelemstransfered);
-
-
-
-
-
-  	///////////////////////
-  	//Output
-  
-  	//Output pgram to file
-  	#if PRINTPGRAM==1
-	char fnameoutput[]="pgram.txt";
-  	printf("\nPrinting the pgram to file: %s", fnameoutput);
-	ofstream pgramoutput;
-	pgramoutput.open(fnameoutput,ios::out);	
-  	pgramoutput.precision(4);
-	for (int i=0; i<numFreqs; i++)
-	{
-	pgramoutput<<(*pgram)[i]<<", ";
-	}
-	pgramoutput<<endl;
-  	pgramoutput.close();
-  	#endif
-  	
-
-  	//End output
-  	///////////////////////
-
-
 
 
   	//free memory-- CUDA
@@ -944,6 +858,7 @@ void batchGPULSWrapper(unsigned int * objectId, DTYPE * timeX,  DTYPE * magY, DT
 
 void outputPgramToFile(struct lookupObj * objectLookup, unsigned int numUniqueObjects, unsigned int numFreqs, DTYPE ** pgram)
 {
+	return;
 	char fnameoutput[]="pgram.txt";
   	printf("\nPrinting the pgram to file: %s", fnameoutput);
 	ofstream pgramoutput;
@@ -966,6 +881,7 @@ void outputPgramToFile(struct lookupObj * objectLookup, unsigned int numUniqueOb
 
 void outputPeriodsToFile(struct lookupObj * objectLookup, unsigned int numUniqueObjects, DTYPE * foundPeriod, DTYPE * foundPower)
 {
+	return;
 	char fnamebestperiods[]="bestperiods.txt";
   	printf("\nPrinting the best periods/found power to file: %s", fnamebestperiods);
 	ofstream bestperiodsoutput;
@@ -981,6 +897,7 @@ void outputPeriodsToFile(struct lookupObj * objectLookup, unsigned int numUnique
 
 void outputPeriodsToFileTopThree(struct lookupObj * objectLookup, unsigned int numUniqueObjects, DTYPE * foundPeriod, DTYPE * foundPower)
 {
+	return;
 	char fnamebestperiods[]="bestperiods_top_three.txt";
   	printf("\nPrinting the top three best periods/found powers to file (object id, period #1, period #2, period #3, power #1, power #2, power #3: %s", fnamebestperiods);
 	ofstream bestperiodsoutput;
@@ -996,6 +913,7 @@ void outputPeriodsToFileTopThree(struct lookupObj * objectLookup, unsigned int n
 
 void outputPeriodsToStdout(struct lookupObj * objectLookup, unsigned int numUniqueObjects, DTYPE * foundPeriod, DTYPE * foundPower)
 {
+	return;
 	for (unsigned int i=0; i<numUniqueObjects; i++)
   	{
 	  	printf("\nObject: %d Period: %f, Power: %f ",objectLookup[i].objId,foundPeriod[i], foundPower[i]);
@@ -1091,8 +1009,6 @@ void batchGPULS(unsigned int * objectId, DTYPE * timeX,  DTYPE * magY, DTYPE * m
   	cudaDeviceSynchronize();
 
   	double tend=omp_get_wtime();
-  	printf("\nTime to compute kernel: %f",tend-tstart);
-
 
   	
 
@@ -1125,7 +1041,6 @@ void batchGPULS(unsigned int * objectId, DTYPE * timeX,  DTYPE * magY, DTYPE * m
   	#if RETURNPGRAM==1
   	//compute the maximum power using the returned pgram
   	double tstartcpupgram=omp_get_wtime();
-  	printf("\nCompute period from pgram on CPU:");
 
 
   	#if NORMALIZEPGRAM==1 && ERROR==0
@@ -1221,13 +1136,7 @@ void batchGPULS(unsigned int * objectId, DTYPE * timeX,  DTYPE * magY, DTYPE * m
 
 
   	double tendcpupgram=omp_get_wtime();
-  	printf("\nTime to compute the periods on the CPU using the pgram: %f", tendcpupgram - tstartcpupgram);
   	#endif	
-
-
-  	#if RETURNPGRAM==0
-  	printf("\nCompute period in the kernel directly bypassing the pgram array");
-  	#endif
 
 
   	
@@ -1370,9 +1279,6 @@ void lombscargleCPUOneObject(DTYPE * timeX,  DTYPE * magY, unsigned int * sizeDa
   	#endif
 	computePeriod(pgram, numFreqs, minFreq, freqStep, foundPeriod, foundPower);
 
-	#if PRINTPERIODS==1
-	printf("\nPeriod: %f", *foundPeriod);
-	#endif
 }
 
 //uses error propogation
@@ -1390,10 +1296,6 @@ void lombscargleCPUOneObjectError(DTYPE * timeX,  DTYPE * magY, DTYPE * magDY, u
   	normalizepgramsingleobject(pgram, magY, *sizeData, numFreqs);
   	#endif
 	computePeriod(pgram, numFreqs, minFreq, freqStep, foundPeriod, foundPower);
-
-	#if PRINTPERIODS==1
-	printf("\nPeriod: %f", *foundPeriod);
-	#endif
 
 }
 
@@ -1812,7 +1714,6 @@ void importObjXYData(char * fnamedata, unsigned int * sizeData, unsigned int ** 
   	#if ERROR==1
   	*sizeData=(unsigned int)tmpAllData.size()/4;
   	#endif
-  	printf("\nData import: Total rows: %u",*sizeData);
   	
   	*objectId=(unsigned int *)malloc(sizeof(DTYPE)*(*sizeData));
   	*timeX=   (DTYPE *)malloc(sizeof(DTYPE)*(*sizeData));
@@ -1846,7 +1747,6 @@ void importObjXYData(char * fnamedata, unsigned int * sizeData, unsigned int ** 
 
 
 void warmUpGPU(){
-printf("\nLoad CUDA runtime (initialization overhead)\n");
 
 for (int i=0; i<NUMGPU; i++)
 {
@@ -1867,8 +1767,6 @@ double getGPUCapacity()
   gpuErrchk(cudaMemGetInfo(NULL,&globalmembytes));
   double totalcapacityGiB=globalmembytes*1.0/(1024*1024*1024.0);
 
-  printf("\n[Device name: %s, Detecting GPU Global Memory Capacity] Size in GiB: %f", prop.name, totalcapacityGiB);
   double underestcapacityGiB=totalcapacityGiB*ALPHA;
-  printf("\n[Underestimating GPU Global Memory Capacity] Size in GiB: %f", underestcapacityGiB);
   return underestcapacityGiB;
 }
