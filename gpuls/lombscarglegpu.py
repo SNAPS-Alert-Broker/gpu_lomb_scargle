@@ -216,6 +216,6 @@ def _lombscarglemain(objId: List[int], timeX: np.ndarray, magY: np.ndarray, minF
             (minFreqStandard+(dfstandard*np.argmax(ret_pgram[x])))
 
     ret: List[GPULSResult] = [GPULSResult(
-        *info) for info in zip(ret_uniqueObjectIdsOrdered, ret_periods, ret_pgram)]
+        info[0], info[1], None) for info in zip(ret_uniqueObjectIdsOrdered, ret_periods, ret_pgram)]
 
     return ret
