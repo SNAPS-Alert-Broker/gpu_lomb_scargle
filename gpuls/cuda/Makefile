@@ -44,9 +44,11 @@ $(EXECUTABLE): $(OBJECTS) $(CUDAOBJECTS)
 #These parameters should be changed as a function of the machine
 #NUMGPU- the number of GPUs (default=1), 
 #NTHREADSCPU- the number of physical cores on the platform (default=16)
+NGPU?=1
+NCPU?=16
 PARAMSFORSYSTEM=\
--DNUMGPU=1\
--DNTHREADSCPU=16\
+-DNUMGPU=$(NGPU)\
+-DNTHREADSCPU=$(NCPU)\
 
 
 
