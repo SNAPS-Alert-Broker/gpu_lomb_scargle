@@ -1,0 +1,1 @@
+include gpuls/cuda/*.so
