@@ -1,8 +1,9 @@
 import os
-from typing import List
+from typing import Any, List
 import numpy.ctypeslib as npct
 from ctypes import *
 import numpy as np
+import dataclasses
 from .mode import Mode
 from .dtype import DType
 from .lazydict import LazyDict
@@ -18,6 +19,13 @@ LS_ARGTYPE = {(False, DType.FLOAT): [array_1d_unsigned, array_1d_float, array_1d
               (False, DType.DOUBLE): [array_1d_unsigned, array_1d_double, array_1d_double, array_1d_double, c_uint, c_double, c_double, c_uint, c_int, array_1d_double],
               (True, DType.FLOAT): [array_1d_unsigned, array_1d_float, array_1d_float, array_1d_float, c_uint, c_double, c_double, c_uint, c_int, array_1d_float],
               (True, DType.DOUBLE): [array_1d_unsigned, array_1d_double, array_1d_double, array_1d_double, c_uint, c_double, c_double, c_uint, c_int, array_1d_double]}
+
+
+@dataclasses.dataclass
+class GPULSResult:
+    objID: Any
+    period: float
+    pgram: np.ndarray
 
 
 def loadLib(file, path):
@@ -78,7 +86,7 @@ def enumerateObjects(start_index_arr, end_index_arr):
     ['a','a','b','b','b','c','c','d']-> [0,0,1,1,1,2,2,3]
     """
     enumObjectId = np.empty(end_index_arr[-1]+1, dtype=c_uint32)
-    for i, (s,e) in enumerate(zip(start_index_arr, end_index_arr)):
+    for i, (s, e) in enumerate(zip(start_index_arr, end_index_arr)):
 
         enumObjectId[s:e+1] = i
 
@@ -110,17 +118,13 @@ def computeNumFreqAuto(objId, timeX, fmin, fmax):
 
 
 # wrapper to enable the verbose option
-def lombscargle(objId: List[int], timeX: np.ndarray, magY: np.ndarray, minFreq: float, maxFreq: float, error: bool, mode: Mode, magDY=None, freqToTest: int = -1, dtype: DType = DType.FLOAT):
-    ret_uniqueObjectIdsOrderedWrapper, ret_periodsWrapper, ret_pgramWrapper = _lombscarglemain(
-        objId, timeX, magY, minFreq, maxFreq, error, mode, magDY, freqToTest, dtype)
+def lombscargle(objId: List[int], timeX: np.ndarray, magY: np.ndarray, minFreq: float, maxFreq: float, error: bool, mode: Mode, magDY=None, freqToTest: int = -1, dtype: DType = DType.FLOAT) -> List[GPULSResult]:
 
-    return ret_uniqueObjectIdsOrderedWrapper, ret_periodsWrapper, ret_pgramWrapper
+    return _lombscarglemain(objId, timeX, magY, minFreq, maxFreq, error, mode, magDY, freqToTest, dtype)
 
 
 # main L-S function
-
-
-def _lombscarglemain(objId: List[int], timeX: np.ndarray, magY: np.ndarray, minFreq: float, maxFreq: float, error: bool, mode: Mode, magDY=None, freqToTest: int = -1, dtype: DType = DType.FLOAT):
+def _lombscarglemain(objId: List[int], timeX: np.ndarray, magY: np.ndarray, minFreq: float, maxFreq: float, error: bool, mode: Mode, magDY=None, freqToTest: int = -1, dtype: DType = DType.FLOAT) -> List[GPULSResult]:
 
     # store the minimum/maximum frequencies (needed later for period calculation)
     minFreqStandard = minFreq
@@ -207,8 +211,11 @@ def _lombscarglemain(objId: List[int], timeX: np.ndarray, magY: np.ndarray, minF
 
     # to compute best periods, work back in regular oscillating frequencies (not angular)
     for x in range(0, numObjects):
-        # ret_periods[x]=1.0/(minFreq+(df*np.argmax(ret_pgram[x])))
+
         ret_periods[x] = 1.0 / \
             (minFreqStandard+(dfstandard*np.argmax(ret_pgram[x])))
 
-    return ret_uniqueObjectIdsOrdered, ret_periods, ret_pgram
+    ret: List[GPULSResult] = [GPULSResult(
+        *info) for info in zip(ret_uniqueObjectIdsOrdered, ret_periods, ret_pgram)]
+
+    return ret
