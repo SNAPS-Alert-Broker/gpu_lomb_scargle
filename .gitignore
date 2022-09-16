@@ -4,3 +4,4 @@ gpuls/cuda/main.o
 gpuls/cuda/kernel.o
 dist/
 build/
+GPULS.egg-info
