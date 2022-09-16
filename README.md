@@ -42,7 +42,7 @@ The `Collector` context manager manages the thread that periodically runs GPULS.
 
 The `queueLightCurve` method queues a light curve for GPULS. It takes a list of 2 numpy arrays in the form of [times, mags]. It returns a tuple of the period corresponding to the highest power and the periodogram.
 
-Example 
+Example: 
 ```python
 with Collector(1/100, 1/1, int(1e5)):
   per, pgram = queueLightCurve([times, mags])
