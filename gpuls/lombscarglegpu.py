@@ -77,13 +77,11 @@ def enumerateObjects(start_index_arr, end_index_arr):
     """Get the objects IDs to ints
     ['a','a','b','b','b','c','c','d']-> [0,0,1,1,1,2,2,3]
     """
-    enumObjectId = []
-    for x in range(start_index_arr.size):
-        numElems = end_index_arr[x]-start_index_arr[x]+1
+    enumObjectId = np.empty(end_index_arr[-1]+1, dtype=c_uint32)
+    for i, (s,e) in enumerate(zip(start_index_arr, end_index_arr)):
 
-        enumObjectId.extend(numElems*[x])
+        enumObjectId[s:e+1] = i
 
-    enumObjectId = np.asarray(enumObjectId, dtype=int)
     return enumObjectId
 
 
@@ -189,8 +187,8 @@ def _lombscarglemain(objId: List[int], timeX: np.ndarray, magY: np.ndarray, minF
     c_timeX = convert_type(timeX, conv_dtype)
     c_magY = convert_type(magY, conv_dtype)
 
-    df = (maxFreq-minFreq)/freqToTest*1.0
-    dfstandard = (maxFreqStandard-minFreqStandard)/freqToTest*1.0
+    # df = (maxFreq-minFreq)/freqToTest
+    dfstandard = (maxFreqStandard-minFreqStandard)/freqToTest
 
     # Allocate arrays for results
     ret_pgram = np.zeros(numObjects*freqToTest, dtype=conv_dtype)
