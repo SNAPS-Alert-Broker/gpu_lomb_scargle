@@ -4,9 +4,7 @@ NCPU=16
 export NGPU
 export NCPU
 
-all:
-	cuda
-	install
+all: cuda install
 
 install:
 	python setup.py install
