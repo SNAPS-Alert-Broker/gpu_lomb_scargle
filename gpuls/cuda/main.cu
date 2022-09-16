@@ -80,12 +80,6 @@ void warmUpGPU();
 //for Batching and multi-GPU for batch mode
 void batchGPULSWrapper(unsigned int * objectId, DTYPE * timeX,  DTYPE * magY, DTYPE * magDY, unsigned int * sizeData, const DTYPE minFreq, const DTYPE maxFreq, const unsigned int numFreqs, DTYPE * sumPeriods, DTYPE ** pgram, DTYPE ** foundPeriod, DTYPE ** foundPower);
 
-//output to files and stdout:
-void outputPeriodsToFile(struct lookupObj * objectLookup, unsigned int numUniqueObjects, DTYPE * foundPeriod, DTYPE * foundPower);
-void outputPeriodsToFileTopThree(struct lookupObj * objectLookup, unsigned int numUniqueObjects, DTYPE * foundPeriod, DTYPE * foundPower);
-void outputPgramToFile(struct lookupObj * objectLookup, unsigned int numUniqueObjects, unsigned int numFreqs, DTYPE ** pgram);
-void outputPeriodsToStdout(struct lookupObj * objectLookup, unsigned int numUniqueObjects, DTYPE * foundPeriod, DTYPE * foundPower);
-
 
 using namespace std;
 
@@ -153,15 +147,11 @@ int main(int argc, char *argv[])
 	if (MODE==1)
 	{
 		DTYPE sumPeriods=0;
-		
-		double tstart=omp_get_wtime();
-		
+				
 		//original before using multiple GPUs and batching
 		// batchGPULS(objectId, timeX, magY, magDY, &sizeData, minFreq, maxFreq, freqToTest, &sumPeriods, &pgram, foundPeriod);
 		batchGPULSWrapper(objectId, timeX, magY, magDY, &sizeData, minFreq, maxFreq, freqToTest, &sumPeriods, &pgram, &foundPeriod, &foundPower);
 		
-		double tend=omp_get_wtime();
-		double totalTime=tend-tstart;
 		
 	}
 	//One object to compute on the GPU
@@ -169,7 +159,6 @@ int main(int argc, char *argv[])
 	{
 		DTYPE periodFound=0;	
 		DTYPE maxPowerFound=0;	
-		double tstart=omp_get_wtime();
 		
 		#if ERROR==1
 		updateYerrorfactor(magY, magDY, sizeData);
@@ -177,23 +166,19 @@ int main(int argc, char *argv[])
 
 		GPULSOneObject(timeX, magY, magDY, &sizeData, minFreq, maxFreq, freqToTest, &periodFound, &maxPowerFound, &pgram);
 		
-		double tend=omp_get_wtime();
-		double totalTime=tend-tstart;
 		
 	}
 	//CPU- batch processing
 	else if (MODE==4)
 	{
 		DTYPE sumPeriods=0;
-		double tstart=omp_get_wtime();
 		#if ERROR==0
 		lombscargleCPUBatch(objectId, timeX, magY, &sizeData, minFreq, maxFreq, freqToTest, &sumPeriods, pgram, foundPeriod, foundPower);
 		#endif
 		#if ERROR==1
 		lombscargleCPUBatchError(objectId, timeX, magY, magDY, &sizeData, minFreq, maxFreq, freqToTest, &sumPeriods, pgram, foundPeriod, foundPower);
 		#endif
-		double tend=omp_get_wtime();
-		double totalTime=tend-tstart;
+
 		
 	}
 	//CPU- one object
@@ -201,15 +186,14 @@ int main(int argc, char *argv[])
 	{
 		DTYPE foundPeriod=0;
 		DTYPE foundPower=0;
-		double tstart=omp_get_wtime();
+
 		#if ERROR==0
 		lombscargleCPUOneObject(timeX, magY, &sizeData, minFreq, maxFreq, freqToTest, &foundPeriod, &foundPower, pgram);
 		#endif
 		#if ERROR==1
 		lombscargleCPUOneObjectError(timeX, magY, magDY, &sizeData, minFreq, maxFreq, freqToTest, &foundPeriod, &foundPower, pgram);
 		#endif
-		double tend=omp_get_wtime();
-		double totalTime=tend-tstart;
+
 		
 	}
 
@@ -288,15 +272,11 @@ extern "C" void LombScarglePy(unsigned int * objectId, DTYPE * timeX, DTYPE * ma
 	{
 		warmUpGPU();
 		DTYPE sumPeriods=0;
-		
-		double tstart=omp_get_wtime();
-		
+				
 		//original before using multiple GPUs and batching
 		// batchGPULS(objectId, timeX, magY, magDY, &sizeData, minFreq, maxFreq, freqToTest, &sumPeriods, &pgram, foundPeriod);
 		batchGPULSWrapper(objectId, timeX, magY, magDY, &sizeData, minFreq, maxFreq, freqToTest, &sumPeriods, &pgram, &foundPeriod, &foundPower);
 		
-		double tend=omp_get_wtime();
-		double totalTime=tend-tstart;
 
 	}
 	//One object to compute on the GPU
@@ -305,31 +285,27 @@ extern "C" void LombScarglePy(unsigned int * objectId, DTYPE * timeX, DTYPE * ma
 		warmUpGPU();
 		DTYPE periodFound=0;	
 		DTYPE maxPowerFound=0;	
-		double tstart=omp_get_wtime();
 		
 		#if ERROR==1
 		updateYerrorfactor(magY, magDY, sizeData);
 		#endif	
 
 		GPULSOneObject(timeX, magY, magDY, &sizeData, minFreq, maxFreq, freqToTest, &periodFound, &maxPowerFound, &pgram);
-		
-		double tend=omp_get_wtime();
-		double totalTime=tend-tstart;
+
 
 	}
 	//CPU- batch processing
 	else if (MODE==4)
 	{
 		DTYPE sumPeriods=0;
-		double tstart=omp_get_wtime();
+
 		#if ERROR==0
 		lombscargleCPUBatch(objectId, timeX, magY, &sizeData, minFreq, maxFreq, freqToTest, &sumPeriods, pgram, foundPeriod, foundPower);
 		#endif
 		#if ERROR==1
 		lombscargleCPUBatchError(objectId, timeX, magY, magDY, &sizeData, minFreq, maxFreq, freqToTest, &sumPeriods, pgram, foundPeriod, foundPower);
 		#endif
-		double tend=omp_get_wtime();
-		double totalTime=tend-tstart;
+
 		
 	}
 	//CPU- one object
@@ -337,15 +313,13 @@ extern "C" void LombScarglePy(unsigned int * objectId, DTYPE * timeX, DTYPE * ma
 	{
 		DTYPE foundPeriod=0;
 		DTYPE foundPower=0;
-		double tstart=omp_get_wtime();
+
 		#if ERROR==0
 		lombscargleCPUOneObject(timeX, magY, &sizeData, minFreq, maxFreq, freqToTest, &foundPeriod, &foundPower, pgram);
 		#endif
 		#if ERROR==1
 		lombscargleCPUOneObjectError(timeX, magY, magDY, &sizeData, minFreq, maxFreq, freqToTest, &foundPeriod, &foundPower, pgram);
 		#endif
-		double tend=omp_get_wtime();
-		double totalTime=tend-tstart;
 		
 	}
 
@@ -822,103 +796,11 @@ void batchGPULSWrapper(unsigned int * objectId, DTYPE * timeX,  DTYPE * magY, DT
 
 
 
-  	///////////////////////
-  	//Output
-
-	//print found periods to stdout
-  	#if PRINTPERIODS==1
-  	outputPeriodsToStdout(objectLookup, numUniqueObjects, *foundPeriod, *foundPower);
-  	#endif
-
-	//print found periods to file
-	#if PRINTPERIODS==2
-	outputPeriodsToFile(objectLookup, numUniqueObjects, *foundPeriod, *foundPower);
-	#endif
-
-	//print top 3 found periods to file and their associated powers
-	#if PRINTPERIODS==3
-	outputPeriodsToFileTopThree(objectLookup, numUniqueObjects, *foundPeriod, *foundPower);
-	#endif
-  	
-  	//Output pgram to file
-  	#if PRINTPGRAM==1
-	outputPgramToFile(objectLookup, numUniqueObjects, numFreqs, pgram);  	
-  	#endif
-  	
-
-  	//End output
-  	///////////////////////
-
 
 	return;
 
 }
 
-
-
-void outputPgramToFile(struct lookupObj * objectLookup, unsigned int numUniqueObjects, unsigned int numFreqs, DTYPE ** pgram)
-{
-	return;
-	char fnameoutput[]="pgram.txt";
-  	printf("\nPrinting the pgram to file: %s", fnameoutput);
-	ofstream pgramoutput;
-	pgramoutput.open(fnameoutput,ios::out);	
-  	pgramoutput.precision(4);
-  	for (unsigned int i=0; i<numUniqueObjects; i++)
-	{
-		pgramoutput<<objectLookup[i].objId<<", ";
-		for (unsigned int j=0; j<numFreqs; j++)
-		{
-		pgramoutput<<(*pgram)[(i*numFreqs)+j]<<", ";
-		}
-		pgramoutput<<endl;
-	}
-  	pgramoutput.close();
-}
-
-
-
-
-void outputPeriodsToFile(struct lookupObj * objectLookup, unsigned int numUniqueObjects, DTYPE * foundPeriod, DTYPE * foundPower)
-{
-	return;
-	char fnamebestperiods[]="bestperiods.txt";
-  	printf("\nPrinting the best periods/found power to file: %s", fnamebestperiods);
-	ofstream bestperiodsoutput;
-	bestperiodsoutput.open(fnamebestperiods,ios::out);	
-  	bestperiodsoutput.precision(6);
-  	for (unsigned int i=0; i<numUniqueObjects; i++)
-	{
-		bestperiodsoutput<<objectLookup[i].objId<<", "<<foundPeriod[i]<<", "<<foundPower[i]<<endl;
-	}
-  	bestperiodsoutput.close();
-}
-
-
-void outputPeriodsToFileTopThree(struct lookupObj * objectLookup, unsigned int numUniqueObjects, DTYPE * foundPeriod, DTYPE * foundPower)
-{
-	return;
-	char fnamebestperiods[]="bestperiods_top_three.txt";
-  	printf("\nPrinting the top three best periods/found powers to file (object id, period #1, period #2, period #3, power #1, power #2, power #3: %s", fnamebestperiods);
-	ofstream bestperiodsoutput;
-	bestperiodsoutput.open(fnamebestperiods,ios::out);	
-  	bestperiodsoutput.precision(6);
-  	for (uint64_t i=0; i<numUniqueObjects; i++)
-	{
-		uint64_t offset=i*(uint64_t)3;	
-		bestperiodsoutput<<objectLookup[i].objId<<", "<<foundPeriod[offset]<<", "<<foundPeriod[offset+(uint64_t)1]<<", "<<foundPeriod[offset+(uint64_t)2]<<", "<<foundPower[offset]<<", "<<foundPower[offset+(uint64_t)1]<<", "<<foundPower[offset+(uint64_t)2]<<endl;
-	}
-  	bestperiodsoutput.close();
-}
-
-void outputPeriodsToStdout(struct lookupObj * objectLookup, unsigned int numUniqueObjects, DTYPE * foundPeriod, DTYPE * foundPower)
-{
-	return;
-	for (unsigned int i=0; i<numUniqueObjects; i++)
-  	{
-	  	printf("\nObject: %d Period: %f, Power: %f ",objectLookup[i].objId,foundPeriod[i], foundPower[i]);
-  	}
-}
 
 //Send the minimum and maximum frequency and number of frequencies to test to the GPU (not a list of frequencies)
 void batchGPULS(unsigned int * objectId, DTYPE * timeX,  DTYPE * magY, DTYPE * magDY, unsigned int * sizeData, const DTYPE minFreq, const DTYPE maxFreq, const unsigned int numFreqs, DTYPE * sumPeriods, DTYPE * pgram, DTYPE * foundPeriod, DTYPE * foundPower)
@@ -1334,36 +1216,10 @@ void lombscargleCPUBatchError(unsigned int * objectId, DTYPE * timeX,  DTYPE * m
 	}
 
 	
-
-	///////////////////////
-  	//Output
-
-	//print found periods to stdout
-  	#if PRINTPERIODS==1
-  	outputPeriodsToStdout(objectLookup, numUniqueObjects, foundPeriod, foundPower);
-  	#endif
-
-	//print found periods to file
-	#if PRINTPERIODS==2
-	outputPeriodsToFile(objectLookup, numUniqueObjects, foundPeriod, foundPower);
-	#endif
-  	
-  	//Output pgram to file
-  	#if PRINTPGRAM==1
-	outputPgramToFile(objectLookup, numUniqueObjects, numFreqs, &pgram);  	
-  	#endif
   	
 
   	//End output
   	///////////////////////
-
-	//Validation
- 	for (unsigned int i=0; i<numUniqueObjects; i++)
-  	{
-	  	(*sumPeriods)+=foundPeriod[i];
-  	}
-
-	
 
 }
 
@@ -1402,44 +1258,6 @@ void lombscargleCPUBatch(unsigned int * objectId, DTYPE * timeX,  DTYPE * magY, 
 		
 		computePeriod(pgram+pgramWriteOffset, numFreqs, minFreq, freqStep, &foundPeriod[i], &foundPower[i]);
 	}
-
-	// #if PRINTPERIODS==1
-	// for (int i=0; i<numUniqueObjects; i++)
-	// {
-	// printf("\nObject: %d, Period: %f, Power: %f",objectLookup[i].objId, foundPeriod[i], foundPower[i]);
-	// }
-	// #endif
-
-	 ///////////////////////
-  	//Output
-
-	//print found periods to stdout
-  	#if PRINTPERIODS==1
-  	outputPeriodsToStdout(objectLookup, numUniqueObjects, foundPeriod, foundPower);
-  	#endif
-
-	//print found periods to file
-	#if PRINTPERIODS==2
-	outputPeriodsToFile(objectLookup, numUniqueObjects, foundPeriod, foundPower);
-	#endif
-  	
-  	//Output pgram to file
-  	#if PRINTPGRAM==1
-	outputPgramToFile(objectLookup, numUniqueObjects, numFreqs, &pgram);  	
-  	#endif
-  	
-
-  	//End output
-  	///////////////////////
-
-
-
-	//Validation
- 	for (unsigned int i=0; i<numUniqueObjects; i++)
-  	{
-	  	(*sumPeriods)+=foundPeriod[i];
-  	}
-
 	
 
 }
