@@ -14,10 +14,10 @@ Astronomy and Computing, Elsevier\
 https://doi.org/10.1016/j.ascom.2021.100472
 
 ## Install
-To install, clone and run ```make```. If your machine has multiple GPUs or CPU cores, update the following lines to your machines values. 
+To install, clone and run ```make```. If your machine has multiple GPUs or CPU cores, update the following lines to your machines values (If you do not intend ot use the CPU version, then you can ignore the NCPU line). 
 ```
--DNUMGPU=1
--DNTHREADSCPU=16
+NGPU=1
+NCPU=16
 ``` 
 If these values change, you'll have to edit them and reinstall. 
 
