@@ -39,11 +39,8 @@ setup(
     include_package_data=True,
     keywords="GPULS",
     name="GPULS",
-    packages=find_packages(include=["source", "source.*"]),
+    packages=find_packages(include=["gpuls", "gpuls.*"]),
     url="https://github.dev/SNAPS-Alert-Broker",
     version='1.0.0',
     zip_safe=False,
-    ext_modules=modules,
-    include_dirs=[np.get_include()],
-    extra_compile_args=["-O3"],
 )
