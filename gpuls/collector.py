@@ -3,6 +3,7 @@ import time
 import numpy as np
 import threading
 from typing import Any, List, Tuple, Union
+import dataclasses
 
 from .lombscarglegpu import lombscargle, GPULSResult
 from .mode import Mode
@@ -61,7 +62,9 @@ def _run(min_f, max_f, numFreqs, timeout, error=False, lsmode=Mode.GPU, dtype=DT
 
                 for objData in derived:
 
-                    outputData[objData.objID] = (objData.period, objData.pgram)
+                    # Can't send custom objects
+                    # Will recreate object later
+                    outputData[objData.objID] = dataclasses.astuple(objData)
 
                 with finishCond:
                     finishCond.notify_all()
@@ -70,7 +73,7 @@ def _run(min_f, max_f, numFreqs, timeout, error=False, lsmode=Mode.GPU, dtype=DT
         dataLock.release()
 
 
-def queueLightCurve(data: Union[Tuple[np.ndarray, np.ndarray], Tuple[np.ndarray, np.ndarray, np.ndarray]], tid: int = None) -> Tuple[float, np.ndarray]:
+def queueLightCurve(data: Union[Tuple[np.ndarray, np.ndarray], Tuple[np.ndarray, np.ndarray, np.ndarray]], tid: int = None) -> GPULSResult:
     if tid is None:
         tid = hash(current_process())
 
@@ -83,7 +86,7 @@ def queueLightCurve(data: Union[Tuple[np.ndarray, np.ndarray], Tuple[np.ndarray,
     with finishCond:
         finishCond.wait()
 
-    tmp: GPULSResult = outputData[tid]
+    tmp: GPULSResult = GPULSResult(*outputData[tid])
     del outputData[tid]
 
     return tmp
