@@ -1,6 +1,6 @@
 
-NGPU=1
-NCPU=16
+NGPU?=1
+NCPU?=16
 export NGPU
 export NCPU
 
