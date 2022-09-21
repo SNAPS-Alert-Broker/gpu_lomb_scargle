@@ -27,7 +27,7 @@ def stop(thread: threading.Thread):
     manager.shutdown()
 
 
-def _run(min_f, max_f, numFreqs, timeout, error=False, lsmode=Mode.GPU, dtype=DType.DOUBLE):
+def _run(min_f, max_f, numFreqs, timeout, error=False, lsmode=Mode.GPU, dtype=DType.DOUBLE, getPgram:bool=False):
     while running.value:
 
         dataLock.acquire()
@@ -58,7 +58,7 @@ def _run(min_f, max_f, numFreqs, timeout, error=False, lsmode=Mode.GPU, dtype=DT
                     objIds += [tid for _ in range(len(d[0]))]
 
                 derived: List[GPULSResult] = lombscargle(
-                    objIds, times, mags, min_f, max_f, error, lsmode, magDY=errors, freqToTest=numFreqs, dtype=dtype)
+                    objIds, times, mags, min_f, max_f, error, lsmode, magDY=errors, freqToTest=numFreqs, dtype=dtype, getPgram=getPgram)
 
                 for objData in derived:
 
@@ -94,7 +94,7 @@ def queueLightCurve(data: Union[Tuple[np.ndarray, np.ndarray], Tuple[np.ndarray,
 
 class Collector:
 
-    def __init__(self, minFreq: float, maxFreq: float, nFreqs: int, timeout: float = 1, error: bool = False, mode: Mode = Mode.GPU, dtype: DType = DType.DOUBLE) -> None:
+    def __init__(self, minFreq: float, maxFreq: float, nFreqs: int, timeout: float = 1, error: bool = False, mode: Mode = Mode.GPU, dtype: DType = DType.DOUBLE, getPgram=False) -> None:
         self.runnerThread: threading.Thread = None
         self.minFreq: float = minFreq
         self.maxFreq: float = maxFreq
