@@ -2,6 +2,7 @@ import os
 from typing import Any, List, Tuple
 import numpy.ctypeslib as npct
 from ctypes import *
+from scipy.signal import peak_widths
 import numpy as np
 import dataclasses
 from .mode import Mode

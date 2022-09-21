@@ -10,6 +10,7 @@ import numpy as np
 
 requirements = [
     "numpy",
+    "scipy>=1.1.0"
 ]
 
 
