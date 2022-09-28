@@ -26,17 +26,6 @@ CUDAARCHFLAGS = -arch=compute_$(COMPUTE_CAPABILITY) \
 # -gencode=arch=compute_80,code=sm_80 \
 #put future generations here.
 
-all: $(EXECUTABLE)
-
-main.o: main.cu params.h structs.h
-	$(CC) $(FLAGS) $(CFLAGS) $(COMPUTE_CAPABILITY_FLAGS) main.cu 
-
-kernel.o: kernel.cu params.h structs.h kernel.h
-	$(CC) $(FLAGS) $(CFLAGS) $(COMPUTE_CAPABILITY_FLAGS) kernel.cu 
-
-$(EXECUTABLE): $(OBJECTS) $(CUDAOBJECTS)
-	$(CC) $(FLAGS) $^ -o $@
-
 
 ###################################
 #target for creating shared library for Python
