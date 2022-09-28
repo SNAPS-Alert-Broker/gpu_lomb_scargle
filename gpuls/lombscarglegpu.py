@@ -8,7 +8,7 @@ import dataclasses
 from .mode import Mode
 from .dtype import DType
 from .lazydict import LazyDict
-
+import time
 
 # Create variables that define C interface
 array_1d_double = npct.ndpointer(dtype=c_double, ndim=1, flags='CONTIGUOUS')
@@ -123,12 +123,12 @@ def computeNumFreqAuto(objId, timeX, fmin, fmax):
 # wrapper to enable the verbose option
 def lombscargle(objId: List[int], timeX: np.ndarray, magY: np.ndarray, minFreq: float, maxFreq: float, error: bool, mode: Mode, magDY=None, freqToTest: int = -1, dtype: DType = DType.FLOAT, mask:Tuple[Tuple[float, float]] = None, getPgram:bool=True) -> List[GPULSResult]:
 
-    return _lombscarglemain(objId, timeX, magY, minFreq, maxFreq, error, mode, magDY, freqToTest, dtype)
+    return _lombscarglemain(objId, timeX, magY, minFreq, maxFreq, error, mode, magDY, freqToTest, dtype, getPgram)
 
 
 # main L-S function
 def _lombscarglemain(objId: List[int], timeX: np.ndarray, magY: np.ndarray, minFreq: float, maxFreq: float, error: bool, mode: Mode, magDY=None, freqToTest: int = -1, dtype: DType = DType.FLOAT, getPgram:bool=True) -> List[GPULSResult]:
-
+    s = time.time()
     # store the minimum/maximum frequencies (needed later for period calculation)
     minFreqStandard = minFreq
     maxFreqStandard = maxFreq
@@ -203,10 +203,8 @@ def _lombscarglemain(objId: List[int], timeX: np.ndarray, magY: np.ndarray, minF
     # load the shared library (either the noerror/error and float/double versions)
     libLombScargle = LS_SO_FILES[(error, dtype)]
     libLombScargle.LombScarglePy.argtypes = LS_ARGTYPE[(error, dtype)]
-
     libLombScargle.LombScarglePy(c_objId, c_timeX, c_magY, c_magDY, c_uint(sizeData), c_double(
         minFreq), c_double(maxFreq), c_uint(freqToTest), c_int(setmode), ret_pgram)
-
     # for convenience, reshape the pgrams as a 2-D array
     ret_pgram = ret_pgram.reshape([numObjects, freqToTest])
 
@@ -222,7 +220,7 @@ def _lombscarglemain(objId: List[int], timeX: np.ndarray, magY: np.ndarray, minF
 
         res = peak_widths(ret_pgram[x], [maxIdx])
         ret_peakWidths[x] = ret_periods[x] - 1.0 / (minFreqStandard+(dfstandard*(maxIdx - (res[0][0] / 2)))) 
-
+    #ret_peakWidths = [None]*numObjects
     if getPgram:
 
         ret: List[GPULSResult] = [GPULSResult(
@@ -231,5 +229,4 @@ def _lombscarglemain(objId: List[int], timeX: np.ndarray, magY: np.ndarray, minF
     else:
         ret: List[GPULSResult] = [GPULSResult(
             *info) for info in zip(ret_uniqueObjectIdsOrdered, ret_periods, ret_peakWidths)]
-
     return ret
