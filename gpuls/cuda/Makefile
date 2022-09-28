@@ -23,7 +23,7 @@ CUDAARCHFLAGS = -arch=compute_$(COMPUTE_CAPABILITY) \
 -gencode=arch=compute_70,code=sm_70 \
 -gencode=arch=compute_72,code=sm_72 \
 -gencode=arch=compute_75,code=sm_75 \
-# -gencode=arch=compute_80,code=sm_80 \
+-gencode=arch=compute_80,code=sm_80 \
 #put future generations here.
 
 
@@ -59,27 +59,30 @@ PARAMSDEFAULTS=\
 
 
 #make the noerror/error and float/double targets (4 total)
-make_python_shared_libs: make_python_noerror_float make_python_noerror_double make_python_error_float make_python_error_double
+make_python_shared_libs: make_dir make_python_noerror_float make_python_noerror_double make_python_error_float make_python_error_double
+
+make_dir:
+	mkdir gpu$(NGPU)
 
 make_python_noerror_float: main.cu structs.h 
 	$(CC) -Xcompiler -fPIC --shared $(PARAMSFORSYSTEM) $(PARAMSDEFAULTS) -DPYTHON -DERROR=0 -DDTYPE=float $(FLAGS) $(CUDAARCHFLAGS) -c main.cu 
 	$(CC) -Xcompiler -fPIC --shared $(PARAMSFORSYSTEM) $(PARAMSDEFAULTS) -DPYTHON -DERROR=0 -DDTYPE=float $(FLAGS) $(CUDAARCHFLAGS) -c kernel.cu 
-	$(CC) -Xcompiler -fPIC --shared $(PARAMSFORSYSTEM) $(PARAMSDEFAULTS) -DPYTHON -DERROR=0 -DDTYPE=float $(FLAGS) $(CUDAARCHFLAGS) main.o kernel.o -o libpylsnoerrorfloat.so
+	$(CC) -Xcompiler -fPIC --shared $(PARAMSFORSYSTEM) $(PARAMSDEFAULTS) -DPYTHON -DERROR=0 -DDTYPE=float $(FLAGS) $(CUDAARCHFLAGS) main.o kernel.o -o gpu$(NGPU)/libpylsnoerrorfloat.so
 
 make_python_noerror_double: main.cu structs.h 
 	$(CC) -Xcompiler -fPIC --shared $(PARAMSFORSYSTEM) $(PARAMSDEFAULTS) -DPYTHON -DERROR=0 -DDTYPE=double $(FLAGS) $(CUDAARCHFLAGS) -c main.cu 
 	$(CC) -Xcompiler -fPIC --shared $(PARAMSFORSYSTEM) $(PARAMSDEFAULTS) -DPYTHON -DERROR=0 -DDTYPE=double $(FLAGS) $(CUDAARCHFLAGS) -c kernel.cu 
-	$(CC) -Xcompiler -fPIC --shared $(PARAMSFORSYSTEM) $(PARAMSDEFAULTS) -DPYTHON -DERROR=0 -DDTYPE=double $(FLAGS) $(CUDAARCHFLAGS) main.o kernel.o -o libpylsnoerrordouble.so
+	$(CC) -Xcompiler -fPIC --shared $(PARAMSFORSYSTEM) $(PARAMSDEFAULTS) -DPYTHON -DERROR=0 -DDTYPE=double $(FLAGS) $(CUDAARCHFLAGS) main.o kernel.o -o gpu$(NGPU)/libpylsnoerrordouble.so
 
 make_python_error_float: main.cu structs.h 
 	$(CC) -Xcompiler -fPIC --shared $(PARAMSFORSYSTEM) $(PARAMSDEFAULTS) -DPYTHON -DERROR=1 -DDTYPE=float $(FLAGS) $(CUDAARCHFLAGS) -c main.cu 
 	$(CC) -Xcompiler -fPIC --shared $(PARAMSFORSYSTEM) $(PARAMSDEFAULTS) -DPYTHON -DERROR=1 -DDTYPE=float $(FLAGS) $(CUDAARCHFLAGS) -c kernel.cu 
-	$(CC) -Xcompiler -fPIC --shared $(PARAMSFORSYSTEM) $(PARAMSDEFAULTS) -DPYTHON -DERROR=1 -DDTYPE=float $(FLAGS) $(CUDAARCHFLAGS) main.o kernel.o -o libpylserrorfloat.so
+	$(CC) -Xcompiler -fPIC --shared $(PARAMSFORSYSTEM) $(PARAMSDEFAULTS) -DPYTHON -DERROR=1 -DDTYPE=float $(FLAGS) $(CUDAARCHFLAGS) main.o kernel.o -o gpu$(NGPU)/libpylserrorfloat.so
 
 make_python_error_double: main.cu structs.h 
 	$(CC) -Xcompiler -fPIC --shared $(PARAMSFORSYSTEM) $(PARAMSDEFAULTS) -DPYTHON -DERROR=1 -DDTYPE=double $(FLAGS) $(CUDAARCHFLAGS) -c main.cu 
 	$(CC) -Xcompiler -fPIC --shared $(PARAMSFORSYSTEM) $(PARAMSDEFAULTS) -DPYTHON -DERROR=1 -DDTYPE=double $(FLAGS) $(CUDAARCHFLAGS) -c kernel.cu 
-	$(CC) -Xcompiler -fPIC --shared $(PARAMSFORSYSTEM) $(PARAMSDEFAULTS) -DPYTHON -DERROR=1 -DDTYPE=double $(FLAGS) $(CUDAARCHFLAGS) main.o kernel.o -o libpylserrordouble.so
+	$(CC) -Xcompiler -fPIC --shared $(PARAMSFORSYSTEM) $(PARAMSDEFAULTS) -DPYTHON -DERROR=1 -DDTYPE=double $(FLAGS) $(CUDAARCHFLAGS) main.o kernel.o -o gpu$(NGPU)/libpylserrordouble.so
 
 	
 
