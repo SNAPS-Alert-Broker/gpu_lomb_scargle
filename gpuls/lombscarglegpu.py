@@ -123,11 +123,11 @@ def computeNumFreqAuto(objId, timeX, fmin, fmax):
 # wrapper to enable the verbose option
 def lombscargle(objId: List[int], timeX: np.ndarray, magY: np.ndarray, minFreq: float, maxFreq: float, error: bool, mode: Mode, magDY=None, freqToTest: int = -1, dtype: DType = DType.FLOAT, mask:Tuple[Tuple[float, float]] = None, getPgram:bool=True) -> List[GPULSResult]:
 
-    return _lombscarglemain(objId, timeX, magY, minFreq, maxFreq, error, mode, magDY, freqToTest, dtype, getPgram)
+    return _lombscarglemain(objId, timeX, magY, minFreq, maxFreq, error, mode, magDY=magDY, freqToTest=freqToTest, dtype=dtype, mask=mask, getPgram=getPgram)
 
 
 # main L-S function
-def _lombscarglemain(objId: List[int], timeX: np.ndarray, magY: np.ndarray, minFreq: float, maxFreq: float, error: bool, mode: Mode, magDY=None, freqToTest: int = -1, dtype: DType = DType.FLOAT, getPgram:bool=True) -> List[GPULSResult]:
+def _lombscarglemain(objId: List[int], timeX: np.ndarray, magY: np.ndarray, minFreq: float, maxFreq: float, error: bool, mode: Mode, magDY=None, freqToTest: int = -1, dtype: DType = DType.FLOAT, mask:Tuple[Tuple[float, float]] = None, getPgram:bool=True) -> List[GPULSResult]:
     s = time.time()
     # store the minimum/maximum frequencies (needed later for period calculation)
     minFreqStandard = minFreq
