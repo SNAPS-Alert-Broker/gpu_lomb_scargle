@@ -5,10 +5,11 @@ from ctypes import *
 from scipy.signal import peak_widths
 import numpy as np
 import dataclasses
+from collections.abc import Iterable
 from .mode import Mode
 from .dtype import DType
 from .lazydict import LazyDict
-import time
+
 
 # Create variables that define C interface
 array_1d_double = npct.ndpointer(dtype=c_double, ndim=1, flags='CONTIGUOUS')
@@ -125,12 +126,22 @@ def computeNumFreqAuto(objId, timeX, fmin, fmax):
 # wrapper to enable the verbose option
 def lombscargle(objId: List[int], timeX: np.ndarray, magY: np.ndarray, minFreq: float, maxFreq: float, error: bool, mode: Mode, magDY=None, freqToTest: int = -1, dtype: DType = DType.FLOAT, mask:Tuple[Tuple[float, float]] = None, getPgram:bool=True) -> List[GPULSResult]:
 
+    # If the user passed in a list of list/numpy arrays
+    if isinstance(time[0], Iterable):
+        objId = np.concatenate( ([o]*len(r) for o, r in zip(objId, timeX)) )
+        timeX = np.concatenate(timeX)
+        magY = np.concatenate(magY)
+        if error:
+            magDY = np.concatenate(magDY)
+        
+
+
     return _lombscarglemain(objId, timeX, magY, minFreq, maxFreq, error, mode, magDY=magDY, freqToTest=freqToTest, dtype=dtype, mask=mask, getPgram=getPgram)
 
 
 # main L-S function
 def _lombscarglemain(objId: List[int], timeX: np.ndarray, magY: np.ndarray, minFreq: float, maxFreq: float, error: bool, mode: Mode, magDY=None, freqToTest: int = -1, dtype: DType = DType.FLOAT, mask:Tuple[Tuple[float, float]] = None, getPgram:bool=True) -> List[GPULSResult]:
-    s = time.time()
+
     # store the minimum/maximum frequencies (needed later for period calculation)
     minFreqStandard = minFreq
     maxFreqStandard = maxFreq
