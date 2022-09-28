@@ -28,6 +28,8 @@ class GPULSResult:
     period: float
     error: float
     pgram: np.ndarray = None
+    maskPeriod: float = None
+    maskError: float = None
 
 
 
@@ -198,35 +200,64 @@ def _lombscarglemain(objId: List[int], timeX: np.ndarray, magY: np.ndarray, minF
     dfstandard = (maxFreqStandard-minFreqStandard)/freqToTest
 
     # Allocate arrays for results
-    ret_pgram = np.zeros(numObjects*freqToTest, dtype=conv_dtype)
+    ret_pgram = np.empty(numObjects*freqToTest, dtype=conv_dtype)
 
     # load the shared library (either the noerror/error and float/double versions)
     libLombScargle = LS_SO_FILES[(error, dtype)]
     libLombScargle.LombScarglePy.argtypes = LS_ARGTYPE[(error, dtype)]
     libLombScargle.LombScarglePy(c_objId, c_timeX, c_magY, c_magDY, c_uint(sizeData), c_double(
         minFreq), c_double(maxFreq), c_uint(freqToTest), c_int(setmode), ret_pgram)
+    
     # for convenience, reshape the pgrams as a 2-D array
     ret_pgram = ret_pgram.reshape([numObjects, freqToTest])
+    
+    #Calculate the periods in the pgram
+    periods = 1/np.linspace(minFreq, maxFreq, freqToTest)
+
+    if mask is not None:    
+        pgramMask = np.ones(freqToTest, dtype=bool)
+
+        for m in mask:
+            pgramMask = pgramMask & ~((periods>m[0]) & (periods<m[1]))
+        
+        periodsMask = periods[pgramMask]
+
 
     ret_periods = np.empty(numObjects)
     ret_peakWidths = np.empty(numObjects)
 
-    # to compute best periods, work back in regular oscillating frequencies (not angular)
-    for x in range(0, numObjects):
+    if mask is not None:
+        ret_mask_periods = np.empty(numObjects)
+        ret_mask_peakWidths = np.empty(numObjects)
+    else:
+        ret_mask_periods = ret_mask_peakWidths = (None for _ in range(numObjects))
 
+    # to compute best periods, work back in regular oscillating frequencies (not angular)
+    for x in range(numObjects):
+
+        # Normal pgram
         maxIdx = np.argmax(ret_pgram[x])
 
-        ret_periods[x] = 1.0 / (minFreqStandard+(dfstandard*maxIdx))
+        ret_periods[x] = periods[maxIdx]
 
         res = peak_widths(ret_pgram[x], [maxIdx])
         ret_peakWidths[x] = ret_periods[x] - 1.0 / (minFreqStandard+(dfstandard*(maxIdx - (res[0][0] / 2)))) 
-    #ret_peakWidths = [None]*numObjects
-    if getPgram:
+    
+        #Masked pgram
+        if mask is not None:
+            maxIdx = np.argmax(ret_pgram[x][pgramMask])
 
-        ret: List[GPULSResult] = [GPULSResult(
-            *info) for info in zip(ret_uniqueObjectIdsOrdered, ret_periods, ret_peakWidths, ret_pgram)]
+            ret_mask_periods[x] = periodsMask[maxIdx]
 
-    else:
-        ret: List[GPULSResult] = [GPULSResult(
-            *info) for info in zip(ret_uniqueObjectIdsOrdered, ret_periods, ret_peakWidths)]
+            res = peak_widths(ret_pgram[x][pgramMask], [maxIdx])
+            ret_mask_peakWidths[x] = ret_mask_periods[x] - 1.0 / (minFreqStandard+(dfstandard*(maxIdx - (res[0][0] / 2)))) 
+
+    if not getPgram:
+        
+        ret_pgram = (None for _ in range(numObjects))
+
+    ret: List[GPULSResult] = [GPULSResult(*info) 
+                              for info in zip(ret_uniqueObjectIdsOrdered, ret_periods, ret_peakWidths, ret_pgram, ret_mask_periods, ret_mask_peakWidths)]
+
+
     return ret
