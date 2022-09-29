@@ -39,10 +39,16 @@ def loadLib(file, path):
 
 
 lib_path = os.path.join(os.path.dirname(__file__), 'cuda')
-LS_SO_FILES = LazyDict({(False, DType.FLOAT): (loadLib, ('libpylsnoerrorfloat.so', lib_path)),
-                        (False, DType.DOUBLE): (loadLib, ('libpylsnoerrordouble.so', lib_path)),
-                        (True, DType.FLOAT): (loadLib, ('libpylserrorfloat.so', lib_path)),
-                        (True, DType.DOUBLE): (loadLib, ('libpylserrordouble.so', lib_path))})
+tmp = {}
+for i in range(1,4+1):
+
+    tmp.update({(False, DType.FLOAT, i): (loadLib, (f'gpu{i}/libpylsnoerrorfloat.so', lib_path)),
+                (False, DType.DOUBLE, i): (loadLib, (f'gpu{i}/libpylsnoerrordouble.so', lib_path)),
+                (True, DType.FLOAT, i): (loadLib, (f'gpu{i}/libpylserrorfloat.so', lib_path)),
+                (True, DType.DOUBLE, i): (loadLib, (f'gpu{i}/libpylserrordouble.so', lib_path))})
+
+LS_SO_FILES = LazyDict(tmp)
+
 
 
 def convert_type(in_array, new_dtype):
@@ -124,10 +130,10 @@ def computeNumFreqAuto(objId, timeX, fmin, fmax):
 
 
 # wrapper to enable the verbose option
-def lombscargle(objId: List[int], timeX: np.ndarray, magY: np.ndarray, minFreq: float, maxFreq: float, error: bool, mode: Mode, magDY=None, freqToTest: int = -1, dtype: DType = DType.FLOAT, mask:Tuple[Tuple[float, float]] = None, getPgram:bool=True) -> List[GPULSResult]:
+def lombscargle(objId: List[int], timeX: np.ndarray, magY: np.ndarray, minFreq: float, maxFreq: float, error: bool, mode: Mode, magDY=None, freqToTest: int = -1, dtype: DType = DType.FLOAT, mask:Tuple[Tuple[float, float]] = None, getPgram:bool=True, nGPU:int=1) -> List[GPULSResult]:
 
     # If the user passed in a list of list/numpy arrays
-    if isinstance(time[0], Iterable):
+    if isinstance(timeX[0], Iterable):
         objId = np.concatenate( ([o]*len(r) for o, r in zip(objId, timeX)) )
         timeX = np.concatenate(timeX)
         magY = np.concatenate(magY)
@@ -136,11 +142,11 @@ def lombscargle(objId: List[int], timeX: np.ndarray, magY: np.ndarray, minFreq: 
         
 
 
-    return _lombscarglemain(objId, timeX, magY, minFreq, maxFreq, error, mode, magDY=magDY, freqToTest=freqToTest, dtype=dtype, mask=mask, getPgram=getPgram)
+    return _lombscarglemain(objId, timeX, magY, minFreq, maxFreq, error, mode, magDY=magDY, freqToTest=freqToTest, dtype=dtype, mask=mask, getPgram=getPgram, nGPU=nGPU)
 
 
 # main L-S function
-def _lombscarglemain(objId: List[int], timeX: np.ndarray, magY: np.ndarray, minFreq: float, maxFreq: float, error: bool, mode: Mode, magDY=None, freqToTest: int = -1, dtype: DType = DType.FLOAT, mask:Tuple[Tuple[float, float]] = None, getPgram:bool=True) -> List[GPULSResult]:
+def _lombscarglemain(objId: List[int], timeX: np.ndarray, magY: np.ndarray, minFreq: float, maxFreq: float, error: bool, mode: Mode, magDY=None, freqToTest: int = -1, dtype: DType = DType.FLOAT, mask:Tuple[Tuple[float, float]] = None, getPgram:bool=True, nGPU:int = 1) -> List[GPULSResult]:
 
     # store the minimum/maximum frequencies (needed later for period calculation)
     minFreqStandard = minFreq
@@ -212,9 +218,8 @@ def _lombscarglemain(objId: List[int], timeX: np.ndarray, magY: np.ndarray, minF
 
     # Allocate arrays for results
     ret_pgram = np.empty(numObjects*freqToTest, dtype=conv_dtype)
-
     # load the shared library (either the noerror/error and float/double versions)
-    libLombScargle = LS_SO_FILES[(error, dtype)]
+    libLombScargle = LS_SO_FILES[(error, dtype, nGPU)]
     libLombScargle.LombScarglePy.argtypes = LS_ARGTYPE[(error, dtype)]
     libLombScargle.LombScarglePy(c_objId, c_timeX, c_magY, c_magDY, c_uint(sizeData), c_double(
         minFreq), c_double(maxFreq), c_uint(freqToTest), c_int(setmode), ret_pgram)

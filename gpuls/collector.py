@@ -33,7 +33,7 @@ def stop(thread: threading.Thread):
     manager.shutdown()
 
 
-def _run(min_f, max_f, numFreqs, timeout ,error=False, lsmode=Mode.GPU, dtype=DType.DOUBLE, getPgram:bool=False):
+def _run(min_f, max_f, numFreqs, timeout ,error=False, lsmode=Mode.GPU, dtype=DType.DOUBLE, getPgram:bool=False, nGPU:int=1):
     startTime = time.time()
     while running.value:
         dataLock.acquire()
@@ -63,19 +63,19 @@ def _run(min_f, max_f, numFreqs, timeout ,error=False, lsmode=Mode.GPU, dtype=DT
 
                     objIds += [tid for _ in range(len(d[0]))]
                 derived: List[GPULSResult] = lombscargle(
-                    objIds, times, mags, min_f, max_f, error, lsmode, magDY=errors, freqToTest=numFreqs, dtype=dtype, getPgram=getPgram)
+                    objIds, times, mags, min_f, max_f, error, lsmode, magDY=errors, freqToTest=numFreqs, dtype=dtype, getPgram=getPgram, nGPU=nGPU)
 
                 tmp = {}
                 for objData in derived:
                 
                     # Can't send custom objects
                     # Will recreate object later
-                    tmp[objData.objID] = (objData.objID, objData.period, objData.error, objData.pgram)
+                    tmp[objData.objID] = (objData.objID, objData.period, objData.error, objData.pgram, objData.maskPeriod, objData.maskError)
                 outputData.update(tmp)
                 with finishCond:
                     finishCond.notify_all()
 
-                startTime= time.time()
+                startTime = time.time()
         dataLock.release()
 
 
@@ -85,22 +85,21 @@ def queueLightCurve(data: Union[Tuple[np.ndarray, np.ndarray], Tuple[np.ndarray,
         tid = hash(current_process())
 
     dataLock.acquire()
-    i = inputData.qsize()
-    inputData.put((data, i))
+    inputData.put((data, tid))
 
     dataLock.release()
 
     with finishCond:
         finishCond.wait()
 
-    tmp: GPULSResult = GPULSResult(*outputData[i])
+    tmp: GPULSResult = GPULSResult(*outputData[tid])
     del outputData[tid]
     return tmp
 
 
 class Collector:
 
-    def __init__(self, minFreq: float, maxFreq: float, nFreqs: int, timeout: float = 1, error: bool = False, mode: Mode = Mode.GPU, dtype: DType = DType.DOUBLE, getPgram=False) -> None:
+    def __init__(self, minFreq: float, maxFreq: float, nFreqs: int, timeout: float = 1, error: bool = False, mode: Mode = Mode.GPU, dtype: DType = DType.DOUBLE, getPgram=False, nGPU:int=1) -> None:
         self.runnerThread: threading.Thread = None
         self.minFreq: float = minFreq
         self.maxFreq: float = maxFreq
@@ -110,12 +109,13 @@ class Collector:
         self.mode: Mode = mode
         self.dtype: DType = dtype
         self.getPgram: bool = getPgram
+        self.nGPU: int = nGPU
 
     def __enter__(self):
         #self.runnerThread = threading.Thread(
         #    target=_run, args=(self.minFreq, self.maxFreq, self.nFreqs, self.timeout, self.error, self.mode, self.dtype))
         self.runnerThread = Process(
-            target=_run, args=(self.minFreq, self.maxFreq, self.nFreqs, self.timeout,self.error, self.mode, self.dtype, self.getPgram))
+            target=_run, args=(self.minFreq, self.maxFreq, self.nFreqs, self.timeout,self.error, self.mode, self.dtype, self.getPgram, self.nGPU))
         self.runnerThread.start()
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
