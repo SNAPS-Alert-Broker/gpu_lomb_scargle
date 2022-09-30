@@ -14,9 +14,15 @@ Astronomy and Computing, Elsevier\
 https://doi.org/10.1016/j.ascom.2021.100472
 
 ## Install
-To install the default version (1 GPU, compute capability 60-75), clone and run ```make install```. 
+To install the default version (1-4 GPU, compute capability 60-80):
 
-If your machine has multiple GPUs or CPU cores, update the following lines to your machines values (If you do not intend ot use the CPU version, then you can ignore the NCPU line). 
+```
+git clone https://github.com/SNAPS-Alert-Broker/gpu_lomb_scargle.git
+cd gpu_lomb_scargle
+make install
+```
+
+If your machine has more than 4 GPUs or CPU cores, update the following lines to your machines values (If you do not intend to use the CPU version, then you can ignore the NCPU line). 
 ```
 NGPU=1
 NCPU=16
