@@ -228,7 +228,7 @@ def _lombscarglemain(objId: List[int], timeX: np.ndarray, magY: np.ndarray, minF
     ret_pgram = ret_pgram.reshape([numObjects, freqToTest])
     
     #Calculate the periods in the pgram
-    periods = 1/np.linspace(minFreq, maxFreq, freqToTest)
+    periods = 1/np.linspace(minFreq, maxFreq-dfstandard, freqToTest)
 
     if mask is not None:    
         pgramMask = np.ones(freqToTest, dtype=bool)
@@ -258,7 +258,7 @@ def _lombscarglemain(objId: List[int], timeX: np.ndarray, magY: np.ndarray, minF
         ret_periods[x] = periods[maxIdx]
 
         res = peak_widths(ret_pgram[x], [maxIdx])
-        ret_peakWidths[x] = ret_periods[x] - 1.0 / (minFreqStandard+(dfstandard*(maxIdx - (res[0][0] / 2)))) 
+        ret_peakWidths[x] = abs(ret_periods[x] - periods[int(maxIdx - res[0][0] / 2)] )
     
         #Masked pgram
         if mask is not None:
@@ -267,7 +267,7 @@ def _lombscarglemain(objId: List[int], timeX: np.ndarray, magY: np.ndarray, minF
             ret_mask_periods[x] = periodsMask[maxIdx]
 
             res = peak_widths(ret_pgram[x][pgramMask], [maxIdx])
-            ret_mask_peakWidths[x] = ret_mask_periods[x] - 1.0 / (minFreqStandard+(dfstandard*(maxIdx - (res[0][0] / 2)))) 
+            ret_mask_peakWidths[x] = abs(ret_mask_periods[x] - periodsMask[int(maxIdx - res[0][0] / 2)] ) )
 
     if not getPgram:
         
