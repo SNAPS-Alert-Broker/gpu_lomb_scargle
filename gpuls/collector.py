@@ -19,8 +19,6 @@ else:
 #manager.start()
 inputData = manager.Queue()
 outputData = manager.dict()
-#test = manager.dict()
-#outputData = manager.list([None for _ in range(64)])
 dataLock = manager.Lock()
 finishLock = manager.Lock()
 finishCond = manager.Condition(finishLock)
@@ -53,7 +51,6 @@ def _run(min_f, max_f, numFreqs, timeout ,error=False, lsmode=Mode.GPU, dtype=DT
 
                 objIds: List[Any] = []
                 for tid, d in data.items():
-                    outputData[tid] = sum(d)
 
                     times = np.append(times, d[0])
                     mags = np.append(mags, d[1])
@@ -65,13 +62,14 @@ def _run(min_f, max_f, numFreqs, timeout ,error=False, lsmode=Mode.GPU, dtype=DT
                 derived: List[GPULSResult] = lombscargle(
                     objIds, times, mags, min_f, max_f, error, lsmode, magDY=errors, freqToTest=numFreqs, dtype=dtype, getPgram=getPgram, nGPU=nGPU)
 
-                tmp = {}
+                newData = {}
                 for objData in derived:
                 
                     # Can't send custom objects
                     # Will recreate object later
-                    tmp[objData.objID] = (objData.objID, objData.period, objData.error, objData.pgram, objData.maskPeriod, objData.maskError)
-                outputData.update(tmp)
+                    newData[objData.objID] = dataclasses.astuple(objData)
+                outputData.update(newData)
+                 
                 with finishCond:
                     finishCond.notify_all()
 
