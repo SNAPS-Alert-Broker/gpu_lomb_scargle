@@ -38,6 +38,34 @@ The main way to interface is with the `lombscargle` method. This method can work
 
 - To choose to run on the GPU/CPU and the data type, you must use the provided enums in `gpuls.Mode` and `gpuls.DType`, respectively
 
+Example:
+```python
+#Frequency grid info
+min_f = 1/100
+max_f = 1/1
+nf = int(1e6)
+
+#Array of arrays of the times of the observations
+times = ...
+
+#Array of arrays of the magnitude of the observations
+mags = ...
+
+#Ids of the objects
+ids = [1234,4613,69420,6865,1342]
+
+timesAll = np.array([], dtype=float)
+magsAll = np.array([], dtype=float)
+idsAll = []
+for t, m, i in zip(times, mags, ids):
+  timesAll = np.append(timesAll, t)
+  magsAll = np.append(magsAll, m)
+  
+  idsAll += [i for _ in range(len(t))]
+ 
+ results:List[GPULSResult] = lombscargle(idsAll, timesAll, magsAll, min_f, max_f, False, Mode.GPU, freqToTest=nf, dtype=DType.DOUBLE, nGPU=1)
+```
+
 ### Collector
 In order to facilitate mulitproccesing, we've created an interface that allows for multiple threads/processes Lomb-Scargle needs to be computed simultaneously. The Collector interface contains two parts, a context manager that periodically runs GPULS and a method to add a light curve to the queue. 
 
