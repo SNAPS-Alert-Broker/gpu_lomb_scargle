@@ -267,7 +267,7 @@ def _lombscarglemain(objId: List[int], timeX: np.ndarray, magY: np.ndarray, minF
             ret_mask_periods[x] = periodsMask[maxIdx]
 
             res = peak_widths(ret_pgram[x][pgramMask], [maxIdx])
-            ret_mask_peakWidths[x] = abs(ret_mask_periods[x] - periodsMask[int(maxIdx - res[0][0] / 2)] ) )
+            ret_mask_peakWidths[x] = abs(ret_mask_periods[x] - periodsMask[int(maxIdx - res[0][0] / 2)] ) 
 
     if not getPgram:
         
