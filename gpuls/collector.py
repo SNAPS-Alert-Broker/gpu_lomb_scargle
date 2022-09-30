@@ -36,7 +36,7 @@ def stop(thread: threading.Thread):
     manager.shutdown()
 
 
-def _run(min_f, max_f, numFreqs, timeout ,error=False, lsmode=Mode.GPU, dtype=DType.DOUBLE, getPgram:bool=False, nGPU:int=1):
+def _run(min_f, max_f, numFreqs, timeout ,error=False, lsmode=Mode.GPU, dtype=DType.DOUBLE, getPgram:bool=False, nGPU:int=1, mask=None):
     startTime = time.time()
     while running.value:
         dataLock.acquire()
@@ -65,7 +65,7 @@ def _run(min_f, max_f, numFreqs, timeout ,error=False, lsmode=Mode.GPU, dtype=DT
 
                     objIds += [tid for _ in range(len(d[0]))]
                 derived: List[GPULSResult] = lombscargle(
-                    objIds, times, mags, min_f, max_f, error, lsmode, magDY=errors, freqToTest=numFreqs, dtype=dtype, getPgram=getPgram, nGPU=nGPU)
+                    objIds, times, mags, min_f, max_f, error, lsmode, magDY=errors, freqToTest=numFreqs, dtype=dtype, getPgram=getPgram, nGPU=nGPU, mask=mask)
 
                 newData = {}
                 for i, objData in enumerate(derived):
@@ -104,7 +104,7 @@ def queueLightCurve(data: Union[Tuple[np.ndarray, np.ndarray], Tuple[np.ndarray,
 
 class Collector:
 
-    def __init__(self, minFreq: float, maxFreq: float, nFreqs: int, timeout: float = 1, error: bool = False, mode: Mode = Mode.GPU, dtype: DType = DType.DOUBLE, getPgram=False, nGPU:int=1) -> None:
+    def __init__(self, minFreq: float, maxFreq: float, nFreqs: int, timeout: float = 1, error: bool = False, mode: Mode = Mode.GPU, dtype: DType = DType.DOUBLE, getPgram=False, nGPU:int=1, mask=None) -> None:
         self.runnerThread: threading.Thread = None
         self.minFreq: float = minFreq
         self.maxFreq: float = maxFreq
@@ -115,12 +115,13 @@ class Collector:
         self.dtype: DType = dtype
         self.getPgram: bool = getPgram
         self.nGPU: int = nGPU
+        self.mask = mask
 
     def __enter__(self):
         #self.runnerThread = threading.Thread(
         #    target=_run, args=(self.minFreq, self.maxFreq, self.nFreqs, self.timeout, self.error, self.mode, self.dtype))
         self.runnerThread = Process(
-            target=_run, args=(self.minFreq, self.maxFreq, self.nFreqs, self.timeout,self.error, self.mode, self.dtype, self.getPgram, self.nGPU))
+            target=_run, args=(self.minFreq, self.maxFreq, self.nFreqs, self.timeout,self.error, self.mode, self.dtype, self.getPgram, self.nGPU, self.mask))
         self.runnerThread.start()
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
