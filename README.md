@@ -48,7 +48,7 @@ The `queueLightCurve` method queues a light curve for GPULS. It takes a list of 
 Example: 
 ```python
 with Collector(1/100, 1/1, int(1e5)):
-  per, pgram = queueLightCurve([times, mags])
+  result: GPULSResult = queueLightCurve([times, mags])
 ```
 
 
