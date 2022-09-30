@@ -1,4 +1,4 @@
-from multiprocessing import Queue, current_process, managers, Manager, Process
+from multiprocessing import Queue, current_process, managers, Manager, Process, RawArray
 import time
 import numpy as np
 import threading
@@ -24,6 +24,11 @@ finishLock = manager.Lock()
 finishCond = manager.Condition(finishLock)
 running = manager.Value('b', True)
 
+
+nFreq = int(5e6)
+maxProc = 64
+pgramOut = RawArray('d', nFreq*maxProc)
+pgramOut_np = np.frombuffer(pgramOut, dtype=np.float64).reshape((maxProc, nFreq))
 
 def stop(thread: threading.Thread):
     running.value = False
@@ -63,11 +68,12 @@ def _run(min_f, max_f, numFreqs, timeout ,error=False, lsmode=Mode.GPU, dtype=DT
                     objIds, times, mags, min_f, max_f, error, lsmode, magDY=errors, freqToTest=numFreqs, dtype=dtype, getPgram=getPgram, nGPU=nGPU)
 
                 newData = {}
-                for objData in derived:
-                
+                for i, objData in enumerate(derived):
+                    pgramOut_np[i] = objData.pgram
+
                     # Can't send custom objects
                     # Will recreate object later
-                    newData[objData.objID] = dataclasses.astuple(objData)
+                    newData[objData.objID] = (objData.objID, objData.period, objData.error, i, objData.maskPeriod, objData.maskError)
                 outputData.update(newData)
                  
                 with finishCond:
@@ -89,8 +95,9 @@ def queueLightCurve(data: Union[Tuple[np.ndarray, np.ndarray], Tuple[np.ndarray,
 
     with finishCond:
         finishCond.wait()
-
-    tmp: GPULSResult = GPULSResult(*outputData[tid])
+    outtmp = outputData[tid]
+    
+    tmp: GPULSResult = GPULSResult(outtmp[0], outtmp[1], outtmp[2], np.array(pgramOut_np[outtmp[3]], copy=True), outtmp[4], outtmp[5])
     del outputData[tid]
     return tmp
 

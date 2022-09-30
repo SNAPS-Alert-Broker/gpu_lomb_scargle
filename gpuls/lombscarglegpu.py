@@ -88,7 +88,7 @@ def computeIndexRangesForEachObject(objId):
 
     start_index_arr = np.asarray(start_index_arr, dtype=int)
     end_index_arr = np.asarray(end_index_arr, dtype=int)
-    unique_obj_ids_arr = np.asarray(unique_obj_ids_arr)
+    unique_obj_ids_arr = unique_obj_ids_arr
 
     return start_index_arr, end_index_arr, unique_obj_ids_arr
 
@@ -133,7 +133,7 @@ def computeNumFreqAuto(objId, timeX, fmin, fmax):
 def lombscargle(objId: List[int], timeX: np.ndarray, magY: np.ndarray, minFreq: float, maxFreq: float, error: bool, mode: Mode, magDY=None, freqToTest: int = -1, dtype: DType = DType.FLOAT, mask:Tuple[Tuple[float, float]] = None, getPgram:bool=True, nGPU:int=1) -> List[GPULSResult]:
 
     # If the user passed in a list of list/numpy arrays
-    if isinstance(timeX[0], Iterable):
+    if isinstance(timeX[0], Iterable) :
         objId = np.concatenate( ([o]*len(r) for o, r in zip(objId, timeX)) )
         timeX = np.concatenate(timeX)
         magY = np.concatenate(magY)
@@ -246,7 +246,8 @@ def _lombscarglemain(objId: List[int], timeX: np.ndarray, magY: np.ndarray, minF
         ret_mask_periods = np.empty(numObjects)
         ret_mask_peakWidths = np.empty(numObjects)
     else:
-        ret_mask_periods = ret_mask_peakWidths = (None for _ in range(numObjects))
+        ret_mask_periods = (None for _ in range(numObjects))
+        ret_mask_peakWidths = (None for _ in range(numObjects))
 
     # to compute best periods, work back in regular oscillating frequencies (not angular)
     for x in range(numObjects):
@@ -274,6 +275,5 @@ def _lombscarglemain(objId: List[int], timeX: np.ndarray, magY: np.ndarray, minF
 
     ret: List[GPULSResult] = [GPULSResult(*info) 
                               for info in zip(ret_uniqueObjectIdsOrdered, ret_periods, ret_peakWidths, ret_pgram, ret_mask_periods, ret_mask_peakWidths)]
-
 
     return ret
