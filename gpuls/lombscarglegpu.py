@@ -228,7 +228,7 @@ def _lombscarglemain(objId: List[int], timeX: np.ndarray, magY: np.ndarray, minF
     ret_pgram = ret_pgram.reshape([numObjects, freqToTest])
     
     #Calculate the periods in the pgram
-    periods = 1/np.linspace(minFreq, maxFreq-dfstandard, freqToTest)
+    periods = 2*np.pi/np.linspace(minFreq, maxFreq-dfstandard, freqToTest)
 
     if mask is not None:    
         pgramMask = np.ones(freqToTest, dtype=bool)
