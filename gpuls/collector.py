@@ -69,8 +69,10 @@ def _run(min_f, max_f, numFreqs, timeout ,error=False, lsmode=Mode.GPU, dtype=DT
 
                 newData = {}
                 for i, objData in enumerate(derived):
-                    pgramOut_np[i] = objData.pgram
-
+                    if getPgram:
+                        pgramOut_np[i] = objData.pgram
+                    else:
+                        i = None
                     # Can't send custom objects
                     # Will recreate object later
                     newData[objData.objID] = (objData.objID, objData.period, objData.error, i, objData.maskPeriod, objData.maskError)
@@ -96,8 +98,12 @@ def queueLightCurve(data: Union[Tuple[np.ndarray, np.ndarray], Tuple[np.ndarray,
     with finishCond:
         finishCond.wait()
     outtmp = outputData[tid]
-    
-    tmp: GPULSResult = GPULSResult(outtmp[0], outtmp[1], outtmp[2], np.array(pgramOut_np[outtmp[3]], copy=True), outtmp[4], outtmp[5])
+    idx = outtmp[3]
+    pgram = None
+    if idx is not None:
+        pgram = np.array(pgramOut_np[outtmp[3]], copy=True)
+
+    tmp: GPULSResult = GPULSResult(outtmp[0], outtmp[1], outtmp[2], pgram, outtmp[4], outtmp[5])
     del outputData[tid]
     return tmp
 
