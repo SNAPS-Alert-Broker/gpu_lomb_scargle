@@ -27,7 +27,7 @@ LS_ARGTYPE = {(False, DType.FLOAT): [array_1d_unsigned, array_1d_float, array_1d
 class GPULSResult:
     objID: Any
     period: float
-    error: float
+    error: float = None
     pgram: np.ndarray = None
     maskPeriod: float = None
     maskError: float = None
@@ -256,22 +256,24 @@ def _lombscarglemain(objId: List[int], timeX: np.ndarray, magY: np.ndarray, minF
         maxIdx = np.argmax(ret_pgram[x])
 
         ret_periods[x] = periods[maxIdx]
-
-        res = peak_widths(ret_pgram[x], [maxIdx])
-        ret_peakWidths[x] = abs(ret_periods[x] - periods[int(maxIdx - res[0][0] / 2)] )
+        
+        if not getPgram:
+            res = peak_widths(ret_pgram[x], [maxIdx])
+            ret_peakWidths[x] = abs(ret_periods[x] - periods[int(maxIdx - res[0][0] / 2)] )
     
         #Masked pgram
         if mask is not None:
             maxIdx = np.argmax(ret_pgram[x][pgramMask])
 
             ret_mask_periods[x] = periodsMask[maxIdx]
-
-            res = peak_widths(ret_pgram[x][pgramMask], [maxIdx])
-            ret_mask_peakWidths[x] = abs(ret_mask_periods[x] - periodsMask[int(maxIdx - res[0][0] / 2)] ) 
+            if not getPgram:
+                res = peak_widths(ret_pgram[x][pgramMask], [maxIdx])
+                ret_mask_peakWidths[x] = abs(ret_mask_periods[x] - periodsMask[int(maxIdx - res[0][0] / 2)] ) 
 
     if not getPgram:
         
         ret_pgram = (None for _ in range(numObjects))
+        ret_peakWidths = (None for _ in range(numObjects))
 
     ret: List[GPULSResult] = [GPULSResult(*info) 
                               for info in zip(ret_uniqueObjectIdsOrdered, ret_periods, ret_peakWidths, ret_pgram, ret_mask_periods, ret_mask_peakWidths)]
