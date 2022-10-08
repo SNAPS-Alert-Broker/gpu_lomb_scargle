@@ -62,7 +62,7 @@ PARAMSDEFAULTS=\
 make_python_shared_libs: make_dir make_python_noerror_float make_python_noerror_double make_python_error_float make_python_error_double
 
 make_dir:
-	mkdir gpu$(NGPU)
+	mkdir -p gpu$(NGPU)
 
 make_python_noerror_float: main.cu structs.h 
 	$(CC) -Xcompiler -fPIC --shared $(PARAMSFORSYSTEM) $(PARAMSDEFAULTS) -DPYTHON -DERROR=0 -DDTYPE=float $(FLAGS) $(CUDAARCHFLAGS) -c main.cu 
