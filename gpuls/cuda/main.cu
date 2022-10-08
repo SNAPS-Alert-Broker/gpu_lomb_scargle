@@ -89,7 +89,7 @@ int main(int argc, char *argv[])
 
 	warmUpGPU();
 	cudaProfilerStart();
-	omp_set_nested(1);
+	omp_set_max_active_levels(1);
 
 	//validation and output to file
 	char fname[]="gpu_stats.txt";
@@ -221,7 +221,7 @@ extern "C" void LombScarglePy(unsigned int * objectId, DTYPE * timeX, DTYPE * ma
 
 	
 	// cudaProfilerStart();
-	omp_set_nested(1);
+	omp_set_max_active_levels(1);
 
 
 	/////////////////////////
