@@ -132,6 +132,9 @@ def computeNumFreqAuto(objId, timeX, fmin, fmax):
 # wrapper to enable the verbose option
 def lombscargle(objId: List[int], timeX: np.ndarray, magY: np.ndarray, minFreq: float, maxFreq: float, error: bool, mode: Mode, magDY=None, freqToTest: int = -1, dtype: DType = DType.FLOAT, mask:Tuple[Tuple[float, float]] = None, getPgram:bool=True, nGPU:int=1) -> List[GPULSResult]:
 
+    if objId is None or len(objId)==0:
+        return []
+
     # If the user passed in a list of list/numpy arrays
     if isinstance(timeX[0], Iterable):
         objId = np.concatenate( [[o]*len(r) for o, r in zip(objId, timeX)] )
