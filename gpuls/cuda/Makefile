@@ -23,7 +23,7 @@ CUDAARCHFLAGS = -arch=compute_$(COMPUTE_CAPABILITY) \
 -gencode=arch=compute_70,code=sm_70 \
 -gencode=arch=compute_72,code=sm_72 \
 -gencode=arch=compute_75,code=sm_75 \
--gencode=arch=compute_80,code=sm_80 \
+#-gencode=arch=compute_80,code=sm_80 \
 #put future generations here.
 
 
@@ -84,7 +84,13 @@ make_python_error_double: main.cu structs.h
 	$(CC) -Xcompiler -fPIC --shared $(PARAMSFORSYSTEM) $(PARAMSDEFAULTS) -DPYTHON -DERROR=1 -DDTYPE=double $(FLAGS) $(CUDAARCHFLAGS) -c kernel.cu 
 	$(CC) -Xcompiler -fPIC --shared $(PARAMSFORSYSTEM) $(PARAMSDEFAULTS) -DPYTHON -DERROR=1 -DDTYPE=double $(FLAGS) $(CUDAARCHFLAGS) main.o kernel.o -o gpu$(NGPU)/libpylserrordouble.so
 
-	
+make_so: main.cu main.h
+	mkdir -p ../../lib
+	$(CC) -Xcompiler -fPIC --shared $(PARAMSFORSYSTEM) $(PARAMSDEFAULTS) -DERROR=0 -DDTYPE=float $(FLAGS) $(CUDAARCHFLAGS) -c main.cu 
+	$(CC) -Xcompiler -fPIC --shared $(PARAMSFORSYSTEM) $(PARAMSDEFAULTS) -DERROR=0 -DDTYPE=float $(FLAGS) $(CUDAARCHFLAGS) -c kernel.cu 
+	$(CC) -Xcompiler -fPIC --shared $(PARAMSFORSYSTEM) $(PARAMSDEFAULTS) -DERROR=0 -DDTYPE=float $(FLAGS) $(CUDAARCHFLAGS) main.o kernel.o -o ../../lib/libgpuls.so
+	cp main.h ../../lib/gpuls.h
+
 
 ###################################
 

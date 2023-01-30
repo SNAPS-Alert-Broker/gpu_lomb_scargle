@@ -1,5 +1,5 @@
 #define NTHREADSCPU 18 //used for parallelizing GPU tasks and the number of threads used in the CPU implementations
-#define DTYPE double //float or double
+#define DTYPE float //float or double
 #define BLOCKSIZE 512 //CUDA block size
 
 #define NUMGPU 1 //the number of GPUs
